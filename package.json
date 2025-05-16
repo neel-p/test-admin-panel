@@ -1,0 +1,52 @@
+{
+  "name": "Alris AI Admin",
+  "version": "4.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3002",
+    "lint": "next lint",
+    "analyze": "ANALYZE=true next build"
+  },
+  "dependencies": {
+    "@iconify/react": "4.1.1",
+    "@tabler/icons-react": "3.5.0",
+    "@tanstack/react-table": "^8.21.2",
+    "@types/react-select": "^5.0.0",
+    "axios": "^1.8.4",
+    "clsx": "^2.1.1",
+    "crypto-js": "^4.2.0",
+    "flowbite": "2.3.0",
+    "flowbite-react": "0.10.1",
+    "formik": "^2.4.6",
+    "i18next": "^23.12.2",
+    "js-cookie": "^3.0.5",
+    "libphonenumber-js": "^1.12.7",
+    "lodash": "4.17.21",
+    "next": "^15.1.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-i18next": "^15.0.0",
+    "react-icons": "^5.5.0",
+    "react-phone-input-2": "^2.15.1",
+    "react-select": "^5.10.1",
+    "sharp": "0.32.6",
+    "simplebar-react": "3.2.5",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss-animate": "^1.0.7",
+    "yup": "^1.6.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^15.1.7",
+    "@types/crypto-js": "^4.2.2",
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "20",
+    "@types/react": "18",
+    "eslint": "9.24.0",
+    "eslint-config-next": "15.2.5",
+    "tailwindcss": "3.4.4",
+    "typescript": "5"
+  }
+}
