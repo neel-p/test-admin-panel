@@ -4,14 +4,20 @@ const require = createRequire(import.meta.url);
 
 const isAnalyze = process.env.ANALYZE === "true";
 
-const withBundleAnalyzer = isAnalyze
-  ? require("@next/bundle-analyzer")({
+let withBundleAnalyzer = (config) => config;
+
+if (isAnalyze) {
+  try {
+    withBundleAnalyzer = require("@next/bundle-analyzer")({
       enabled: true,
       analyzerMode: "static",
       reportFilename: "./analyze/bundle-report.html",
       openAnalyzer: false,
-    })
-  : (config) => config;
+    });
+  } catch (err) {
+    console.warn("Bundle analyzer not installed. Skipping analysis.");
+  }
+}
 
 const nextConfig = {
   reactStrictMode: false,
