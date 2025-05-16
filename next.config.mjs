@@ -19,6 +19,9 @@ const nextConfig = {
     domains: [],
     unoptimized: false,
   },
+  experimental: {
+    appDir: true,
+  },
   // Enable compression
   compress: true,
   // Enable production source maps
