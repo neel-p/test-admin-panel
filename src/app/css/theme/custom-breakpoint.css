@@ -1,0 +1,42 @@
+@layer utilities {
+  /* Custom breakpoint utility classes */
+  .custom-container {
+    @apply max-w-[1549.98px] mx-auto px-4;
+  }
+
+  .custom-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 custom:grid-cols-4 gap-4;
+  }
+
+  .custom-flex {
+    @apply flex flex-col custom:flex-row;
+  }
+
+  .custom-padding {
+    @apply p-4 custom:p-6;
+  }
+
+  .custom-margin {
+    @apply m-4 custom:m-6;
+  }
+
+  .custom-text {
+    @apply text-base custom:text-lg;
+  }
+
+  .custom-width {
+    @apply w-full custom:w-auto;
+  }
+
+  .custom-height {
+    @apply h-auto custom:h-screen;
+  }
+
+  .custom-hidden {
+    @apply hidden custom:block;
+  }
+
+  .custom-visible {
+    @apply block custom:hidden;
+  }
+} 
