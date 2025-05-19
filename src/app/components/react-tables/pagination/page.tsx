@@ -16,11 +16,9 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 
-import Image from "next/image";
 import Link from "next/link";
 import TitleIconCard from "@/app/components/shared/TitleIconCard";
-import { Spinner } from "flowbite-react";
-
+import Loader from "@/app/components/Loader";
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unescaped-entities */
 
@@ -88,7 +86,7 @@ function PaginationTable<T>({
       <TitleIconCard title={title}>
         <div className="border rounded-md border-ld overflow-hidden">
           <div className="p-4">
-            <div className="flex sm:flex-row flex-col gap-6 mb-4">
+            <div className="flex sm:flex-row flex-col gap-6 items-center">
               <div className="">
                 <input
                   id="name"
@@ -153,13 +151,7 @@ function PaginationTable<T>({
                       colSpan={safeColumns.length}
                       className="text-center py-8 px-4"
                     >
-                      <div className="flex flex-col items-center">
-                        <Spinner
-                          size="xl"
-                          aria-label="Loading data"
-                          light
-                        />
-                      </div>
+                     <Loader color="primary" />
                     </td>
                   </tr>
                 ) : table?.getRowModel()?.rows?.length ? (

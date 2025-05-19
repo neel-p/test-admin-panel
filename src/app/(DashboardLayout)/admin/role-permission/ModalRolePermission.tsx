@@ -1,5 +1,6 @@
 "use client";
-
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
 import { useState, useCallback } from "react";
 import { Card, Button, Spinner, Checkbox, Label } from "flowbite-react";
 // Add other Flowbite components as needed
@@ -16,6 +17,7 @@ const defaultPermissions = {
     permissions: [{
       isAgent: false,
       isChat: false,
+	  isTalentPool: false,
       collection: {
         create: false,
         read: false,
@@ -114,25 +116,61 @@ interface RolePermissionPageProps {
   clientIds?: number[];
   isBulk?: boolean;
   onClose?: () => void;
+  initialPermissions?: any;
+  fetchUsers?: () => void;
 }
 
-export default function RolePermissionPage({ clientIds = [], isBulk = false, onClose }: RolePermissionPageProps) {
+export default function RolePermissionPage({ 
+  clientIds = [], 
+  isBulk = false, 
+  onClose,
+  initialPermissions = null,
+  fetchUsers
+}: RolePermissionPageProps) {
 	const router = useRouter();
 	const { handleApiResponse } = useHandleApiResponse();
-	  const { showToast } = useToast();
-  const [permissions, setPermissions] = useState(defaultPermissions);
-  const [saving, setSaving] = useState(false);
-
-//   useEffect(() => {
-//     // Fetch permissions from API
-//     fetch(GET_PERMISSIONS_API)
-//       .then((res) => res.json())
-//       .then((data) => {
-//         setPermissions(data);
-//         setLoading(false);
-//       })
-//       .catch(() => setLoading(false));
-//   }, []);
+	const { showToast } = useToast();
+	const [permissions, setPermissions] = useState(() => {
+		if (initialPermissions && !isBulk) {
+			// Transform the permissions structure to match our format
+			return {
+				client: {
+					clientId: clientIds,
+					permissions: [{
+						isAgent: initialPermissions[0]?.isAgent || false,
+						isChat: initialPermissions[0]?.isChat || false,
+						isTalentPool:initialPermissions[0]?.isTalentPool || false,
+						collection: initialPermissions[0]?.modules?.collection || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+						documents: initialPermissions[0]?.modules?.documents || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+						user: initialPermissions[0]?.modules?.user || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+						jobtask: initialPermissions[0]?.modules?.jobtask || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+					}]
+				}
+			};
+		}
+		return defaultPermissions;
+	});
+	const [saving, setSaving] = useState(false);
 
   // Use useCallback for handlers
   const handleSingleCheckbox = useCallback((key, type) => {
@@ -193,13 +231,15 @@ export default function RolePermissionPage({ clientIds = [], isBulk = false, onC
           },
         },
       };
-
+ console.log("payload", payload)
       const response = await api.post("/permission/setPemissions", payload);
 
       // Handle success
       handleApiResponse(response);
-     
-      if (onClose) onClose();
+      if (response?.data?.statusCode === 200 || response?.data?.statusCode === 201) {
+        if (fetchUsers) fetchUsers();
+        if (onClose) onClose();
+      }
     } catch (error) {
      	const message =
 									error?.response?.data?.message || "Network error";
@@ -221,7 +261,7 @@ export default function RolePermissionPage({ clientIds = [], isBulk = false, onC
   };
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="">
       {/* For Clients */}
       <Card className="mb-8 border border-bordergray rounded-xl shadow-none">
         <div className="flex flex-col gap-6">
@@ -238,6 +278,12 @@ export default function RolePermissionPage({ clientIds = [], isBulk = false, onC
               onChange={() => handleSingleCheckbox("isChat", "client")}
               id="client-chat-service"
               label="Chat Service"
+            />
+			 <NormalCheckbox
+              checked={permissions.client.permissions[0].isTalentPool}
+              onChange={() => handleSingleCheckbox("isTalentPool", "client")}
+              id="client-chat-service"
+              label="Talent Pool"
             />
           </div>
 

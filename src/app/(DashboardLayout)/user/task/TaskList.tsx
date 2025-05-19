@@ -18,9 +18,8 @@ import { getDecryptedData } from "@/utils/secureStorage";
 import { useClientStore } from "@/stores/clientStore";
 import { useHandleApiResponse } from "@/utils/useHandleApiResponse";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 import { useToast } from "@/app/components/toast/ToastManager";
-
+import Loader from "@/app/components/Loader";
 interface TaskData {
 	id: number;
 	userId: number;
@@ -38,6 +37,7 @@ interface TaskData {
 	status: string;
 	isDeleted: boolean;
 	actions?: any;
+		agentList?: any;
 }
 
 interface GroupedFields {
@@ -268,6 +268,7 @@ const TaskList = () => {
     const [isView, setIsView] = useState(false);
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [isLoading, setIsLoading] = useState(false);
+	const [isInitialLoad, setIsInitialLoad] = useState(true);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<DeleteModalState>({
 		isOpen: false,
 		data: null,
@@ -284,7 +285,7 @@ const TaskList = () => {
 		<div className="flex items-center space-x-2 cursor-pointer relative" onClick={onClick}>
 			<div className="relative">
 				<Tooltip content={tooltip}>
-					<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white">
+					<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white svg18">
 						<Icon icon={icon} height={18} />
 					</span>
 				</Tooltip>
@@ -495,9 +496,9 @@ const columns = useMemo(
 								/>		
 							)}
 							{canCreate('jobtask') && (
-                            	rowData.status?.toLocaleLowerCase() === "prepared" && (
+                            	 rowData?.agentList?.some((agent: any) => agent?.name?.toLowerCase() === "outboundagent")  && rowData.status?.toLocaleLowerCase() === "prepared" && (
                                 <ActionButton
-                                    onClick={handleOutboundClick}
+                                   onClick={handleOutboundClick}
                                     tooltip="OutBound Search"
                                     icon="solar:magnifer-zoom-in-broken"
                                 />
@@ -512,42 +513,61 @@ const columns = useMemo(
     [data, pageIndex ,pageSize]
 );
 
-	const fetchUsers = async () => {
-		 setIsLoading(true);
+const fetchUsers = async () => {
+  setIsLoading(true);
   try {
-		const payload = {
-			body: {
-				page: pageIndex + 1,
-				pageSize,
-				search,
-				sortBy,
-				sortOrder,
-				userId: parseInt(localData?.id),
-			},
-		};
-		const res = await api.post("/agentTask/UserAgentTaskList", payload);
+    const isClient = localData?.role?.toLowerCase() === "client";
+    const payload = {
+      body: isClient
+        ? {
+            clientId: parseInt(localData?.clientId), // for client
+            page: pageIndex + 1,
+            pageSize,
+            search,
+            sortBy,
+            sortOrder,
+          }
+        : {
+            userId: parseInt(localData?.id), // for non-client
+            page: pageIndex + 1,
+            pageSize,
+            search,
+            sortBy,
+            sortOrder,
+          },
+    };
 
-		if (!res.data.error) {
-			setData(res?.data?.data);
-			setTotal(res?.data?.totalElements);
-		} else {
-			setData([]);
-			setTotal(0);
-		}
-		  } catch (error) {
-     setIsLoading(false);
+    const endpoint = isClient
+      ? "/agentTask/ClientAgentTaskList"
+      : "/agentTask/UserAgentTaskList";
+
+    const res = await api.post(endpoint, payload);
+
+    if (!res.data.error) {
+      setData(res?.data?.data);
+      setTotal(res?.data?.totalElements);
+    } else {
+      setData([]);
+      setTotal(0);
+    }
+  } catch (error) {
+    setIsLoading(false);
   } finally {
+    setIsInitialLoad(false);
     setIsLoading(false);
   }
-	};
+};
+
 
 	useEffect(() => {
 		fetchUsers();
-	}, [pageIndex, pageSize, search, sortBy, sortOrder, localData?.id]);
+	}, [pageIndex, pageSize, search, sortBy, sortOrder, localData?.id, localData?.clientId]);
 
 	return (
-		<>
-		  {hasNoPermissions('jobtask') ? (
+		<>{isInitialLoad ? (
+			// You can use any loader/spinner component here
+			<Loader color="primary" />
+			) :hasNoPermissions('jobtask') ? (
 			  <div className="flex items-center justify-center h-[50vh]">
 				  <div className="text-center">
 					  <h1 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Access</h1>

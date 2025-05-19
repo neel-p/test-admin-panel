@@ -32,7 +32,7 @@ const SideProfile = () => {
         >
           <div className="px-6">
             <h3 className="text-lg font-semibold text-ld">User Profile</h3>
-            <div className="flex items-center gap-6 pb-5 border-b dark:border-darkborder mt-5 mb-3">
+            <div className="flex items-center gap-6 pb-5 border-b dark:border-darkborder mt-5 mb-3 img80">
               <Image
                 src="/images/profile/user-1.jpg"
                 alt="logo"

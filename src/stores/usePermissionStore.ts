@@ -11,8 +11,10 @@ interface ModulePermissions {
   jobtask?: ModulePermission;
   documents?: ModulePermission;
   collection?: ModulePermission;
-  client?:ModulePermission;
-	user?: ModulePermission;
+  client?: ModulePermission;
+  user?: ModulePermission;
+  isAgent?: ModulePermission;
+  isTalentPool?: ModulePermission;
 }
 
 interface Permission {

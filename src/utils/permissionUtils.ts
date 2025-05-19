@@ -1,9 +1,11 @@
 export const MODULE_DISPLAY_NAMES = {
   jobtask: 'Job Posting',
-  documents: 'Collection List',
+  documents: 'Document List',
   user: 'User List',
   collection: 'Collection List',
-  client:'Client List'
+  client: 'Client List',
+  isAgent: 'Agent List',
+  isTalentPool: 'Talent Pool'
 } as const;
 
 export const MODULE_ROUTES = {
@@ -12,7 +14,9 @@ export const MODULE_ROUTES = {
 //   user: '/user-agents',
   collection: '/collection-list',
   user: '/client/user',
-  client: '/admin'
+  client: '/admin',
+  isAgent: '/client/agent',
+  isTalentPool: '/talent-pool'
 } as const;
 
 export type ModuleKey = keyof typeof MODULE_DISPLAY_NAMES;

@@ -11,7 +11,7 @@ const BoxedLogin = () => {
     <>
       <div className="relative overflow-hidden h-screen bg-muted dark:bg-dark">
         <div className="flex h-full justify-center items-center px-4">
-          <CardBox className="md:w-[450px] w-full border-none">
+          <CardBox className="md:w-[450px] w-full border-none loginCard">
             <div className="mx-auto">
               <Logo />
             </div>

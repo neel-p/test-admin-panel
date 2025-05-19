@@ -28,12 +28,16 @@ const DynamicForm: React.FC<Props> = ({ inputSchema, onSubmit, isView }) => {
   const initialValues: Record<string, any> = {};
   const validationShape: Record<string, any> = {};
 
-  Object?.entries(inputSchema)?.forEach(([key, value]) => {
+ Object.entries(inputSchema).forEach(([key, value]) => {
     initialValues[key] = value;
+
     if (Array.isArray(value)) {
-      validationShape[key] = Yup.array().of(Yup.string());
+      validationShape[key] = Yup.array()
+        .of(Yup.string())
+        .min(1, `${capitalizeLabel(key)} must have at least one item`)
+        .required(`${capitalizeLabel(key)} is required`);
     } else {
-      validationShape[key] = noOnlySpaces(validationShape[key]).required(`${key} is required`);
+      validationShape[key] = noOnlySpaces(key);
     }
   });
 
@@ -55,8 +59,7 @@ const DynamicForm: React.FC<Props> = ({ inputSchema, onSubmit, isView }) => {
       ...base,
       backgroundColor: 'rgb(17 24 39)',
       color: 'white',
-    //   maxHeight: '200px',
-    //   overflowY: 'auto',
+    
     }),
     option: (base: any, state: { isFocused: boolean; }) => ({
       ...base,
@@ -100,7 +103,7 @@ const DynamicForm: React.FC<Props> = ({ inputSchema, onSubmit, isView }) => {
         onSubmit={(values, formikHelpers) => onSubmit(values, formikHelpers)}
       >
         {({ values, setFieldValue, errors, touched, isSubmitting }) => (
-          <Form className="space-y-4 mt-6 border border-gray-600 rounded-lg p-4">
+          <Form className="space-y-4  border border-gray-600 rounded-lg p-4">
             <div className="grid lg:grid-cols-2 gap-6">
               {otherFields.map(([key, value]) => (
                 <div key={key}>
@@ -166,7 +169,7 @@ const DynamicForm: React.FC<Props> = ({ inputSchema, onSubmit, isView }) => {
                   name={projectDescKey}
                   className="form-control w-full"
                   disabled={isView}
-                //   color={errors[projectDescKey] && touched[projectDescKey] ? "failure" : "gray"}
+                
                   rows={4}
                 />
                 {errors[projectDescKey] && touched[projectDescKey] && (

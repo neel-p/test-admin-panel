@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/app/components/toast/ToastManager";
 import { useTransition } from "react";
 import { useClientStore } from "@/stores/clientStore";
+import Loader from "@/app/components/Loader";
 
 interface ClientDetails {
 	companyName?: string;
@@ -30,6 +31,7 @@ interface ClientDetails {
 	state: string;
 	city: string;
 	zip: string;
+	permissions?: any
 }
 
 interface ClientContacts {
@@ -48,6 +50,7 @@ interface Client {
 	clientContacts?: ClientContacts;
 	isDeleted?: boolean | null;
 	actions?: any;
+	permissions?: any
 }
 
 interface DeleteModalState {
@@ -76,6 +79,7 @@ const ClientList = () => {
 	const [isInitialLoad, setIsInitialLoad] = useState(true);
 	const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
 	const [showPermissionModal, setShowPermissionModal] = useState(false);
+	const [selectedClientPermissions, setSelectedClientPermissions] = useState(null);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<DeleteModalState>({
 		isOpen: false,
 		data: null,
@@ -117,18 +121,24 @@ const ClientList = () => {
 			columnHelper.accessor("id", {
 				id: "select",
 				header: () => null,
-				cell: ({ row }) => (
+				cell: ({ row }: any) => (
 					<Checkbox
 						checked={selectedClientIds.includes(row.original.id)}
 						onChange={() => {
 							const id = row.original.id;
-							setSelectedClientIds((prev) =>
-								prev.includes(id)
-									? prev.filter((cid) => cid !== id)
-									: [...prev, id]
-							);
+							if (selectedClientIds.includes(id)) {
+								setSelectedClientIds(prev => prev.filter(cid => cid !== id));
+								setSelectedClientPermissions(null);
+							} else {
+								setSelectedClientIds(prev => [...prev, id]);
+								// If this is the only selected client, set its permissions
+								if (selectedClientIds.length === 0) {
+									setSelectedClientPermissions(row?.original?.permissions);
+								} else {
+									setSelectedClientPermissions(null);
+								}
+							}
 						}}
-						// color="purple"
 					/>
 				),
 				enableSorting: false,
@@ -351,7 +361,7 @@ const ClientList = () => {
 	const ActionButton = ({ onClick, tooltip, icon }) => (
 		<div className="flex items-center space-x-2 cursor-pointer" onClick={onClick}>
 			<Tooltip content={tooltip}>
-			<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white">
+			<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white svg18">
 				<Icon icon={icon} height={18} />
 			</span>
 			</Tooltip>
@@ -359,8 +369,11 @@ const ClientList = () => {
 	);
 	
 	return (
-		<>
-		{hasNoPermissions('client') ? (
+		<> 
+		{isInitialLoad ? (
+			// You can use any loader/spinner component here
+			<Loader color="primary" />
+			) : hasNoPermissions('client') ? (
 			  <div className="flex items-center justify-center h-[50vh]">
 				  <div className="text-center">
 					  <h1 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Access</h1>
@@ -394,7 +407,7 @@ const ClientList = () => {
 				{selectedClientIds.length > 0 && (
 					<div
 						className="fixed left-1/2 bottom-8 transform -translate-x-1/2 z-50 flex items-center bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-2"
-						style={{ minWidth: 320 }}
+						
 					>
 						<span className="mr-4 text-sm">{selectedClientIds.length} clients selected</span>
 						<button
@@ -410,6 +423,8 @@ const ClientList = () => {
 						onClose={() => {
 							setShowPermissionModal(false);
 							setSelectedClientIds([]);
+							setSelectedClientPermissions(null);
+							fetchUsers();
 						}}
 						show={showPermissionModal}
 						popup			
@@ -421,10 +436,13 @@ const ClientList = () => {
         <RolePermissionPage
           clientIds={selectedClientIds}
           isBulk={selectedClientIds.length > 1}
+          initialPermissions={selectedClientPermissions}
           onClose={() => {
             setShowPermissionModal(false);
             setSelectedClientIds([]);
+            setSelectedClientPermissions(null);
           }}
+          fetchUsers={fetchUsers}
         />
       </div>
     </Modal.Body>

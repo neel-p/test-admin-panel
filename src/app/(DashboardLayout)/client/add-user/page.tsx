@@ -1,21 +1,15 @@
-'use client'
-// import { Metadata } from "next";
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
+import UserForm from './UserForm'
+import { Metadata } from "next";
 
-// Use Next.js dynamic import directly without custom wrappers
-const UserForm = dynamic(() => import('./UserForm'), {
-  loading: () => (
-    <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-    </div>
-  )
-});
+export const metadata: Metadata = {
+  title: "Add User | Alris Admin",
+};
 
-const page = () => {
+
+const Page = () => {
   return (
     <UserForm />
   );
 };
 
-export default page;
+export default Page;

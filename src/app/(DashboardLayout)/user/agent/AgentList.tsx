@@ -15,9 +15,7 @@ import api1 from "@/utils/axiosPython";
 import { getDecryptedData } from "@/utils/secureStorage";
 import { useHandleApiResponse } from "@/utils/useHandleApiResponse";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-import { useToast } from "@/app/components/toast/ToastManager";
-
+import Loader from "@/app/components/Loader";
 interface Client {
 	createdAt?: string;
 	createdBy?: string | null;
@@ -55,12 +53,12 @@ const AgentList = () => {
 	const [createTask, setCreateTask] = useState<Agent | null>(null);
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 const [isLoading, setIsLoading] = useState(false);
-		
+		const [isInitialLoad, setIsInitialLoad] = useState(true);
 	const ActionButton = ({ onClick, tooltip, icon }) => (
 		<div className="flex items-center space-x-2 cursor-pointer relative" onClick={onClick}>
 				 <div className="relative">
 			<Tooltip content={tooltip}>
-			<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white">
+			<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white svg18">
 				<Icon icon={icon} height={18} />
 			</span>
 
@@ -89,6 +87,7 @@ const [isLoading, setIsLoading] = useState(false);
 				body: {
 					"userId": localData?.id,
 					"agentId": createTask?.agentId,
+					"clientId":parseInt(localData?.clientId),
 					"name": "",
 					"input": values,
 					"output": {}
@@ -193,15 +192,20 @@ const [isLoading, setIsLoading] = useState(false);
     // Handle error
   } finally {
     setIsLoading(false);
+		setIsInitialLoad(false);
   }
 	};
 	useEffect(() => {
 		fetchUsers();
 	}, [pageIndex, pageSize, search, sortBy, sortOrder, localData?.clientId]);
 
+	
 	return (
 		<>
-		 {hasNoPermissions('jobtask') ? (
+		 {isInitialLoad ? (
+			// You can use any loader/spinner component here
+			<Loader color="primary" />
+			) :hasNoPermissions('jobtask') ? (
 			  <div className="flex items-center justify-center h-[50vh]">
 				  <div className="text-center">
 					  <h1 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Access</h1>

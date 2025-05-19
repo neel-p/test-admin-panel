@@ -23,7 +23,6 @@ export default function TokenSynchronizer() {
     
     // Sync localStorage token to cookie for server-side middleware
     syncTokenToCookie();
-    syncPerformed.current = true;
   }, [router]);
 
   // This component doesn't render anything

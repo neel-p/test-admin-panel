@@ -18,7 +18,7 @@ export const useHandleApiResponse = () => {
       case 401:
       case 403:
       case 404:
-			case 409:
+		case 409:
       case 500:
         showToast(message || "Something went wrong", "error");
         break;

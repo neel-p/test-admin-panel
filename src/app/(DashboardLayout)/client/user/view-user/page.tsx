@@ -1,10 +1,16 @@
 
 
 import UserProfile from './UserProfile'
-const page = () => {
+
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Agent List | Alris Admin",
+};
+const Page = () => {
   return (
        <UserProfile />
   );
 };
 
-export default page;
+export default Page;

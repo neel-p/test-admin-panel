@@ -17,7 +17,7 @@ export const IconSidebar = () => {
 
   return (
     <>
-      <div className="px-4 py-6 pt-7 logo">
+      <div className="px-2 py-6 ">
         <Logo />
       </div>
       <SimpleBar className="miniicons">

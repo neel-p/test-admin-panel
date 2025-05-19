@@ -6,7 +6,7 @@ import Logowhite from "/public/images/logos/light-logo.svg";
 import Link from "next/link";
 const FullLogo = () => {
   return (
-    <Link href={"/"}>
+    <Link href={"/"} className="logo">
       {/* Dark Logo   */}
       <Image src={Logo} alt="logo" className="block dark:hidden" />
       {/* Light Logo  */}

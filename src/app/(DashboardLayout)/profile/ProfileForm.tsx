@@ -1,5 +1,6 @@
 "use client";
-
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
 import 'react-phone-input-2/lib/style.css'
 
 import * as Yup from "yup";
@@ -15,6 +16,7 @@ import api from "@/utils/axios";
 import { getDecryptedData } from "@/utils/secureStorage";
 import { useHandleApiResponse } from "@/utils/useHandleApiResponse";
 import { useToast } from "@/app/components/toast/ToastManager";
+import Loader from "@/app/components/Loader";
 
 const noOnlySpaces = (fieldName) =>
 	Yup.string()
@@ -153,13 +155,7 @@ const PhoneInputField: React.FC = () => {
 	return (
 		<div>
 			{pageLoading && (
-				<div className="text-center">
-					<Spinner
-						size="xl"
-						aria-label="Center-aligned spinner example"
-						light
-					/>
-				</div>
+				<Loader color="primary" />
 			)}
 			{!pageLoading && (
 				<>

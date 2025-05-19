@@ -12,6 +12,7 @@ import { getDecryptedData } from "@/utils/secureStorage";
 import { useClientStore } from "@/stores/clientStore";
 import { useHandleApiResponse } from "@/utils/useHandleApiResponse";
 import { useToast } from "@/app/components/toast/ToastManager";
+import Loader from "@/app/components/Loader";
 interface Client {
   id: number;
   name: string;
@@ -44,7 +45,7 @@ const AgentListTab = () => {
       setFetchLoading(true);
       const payload = {
         body: {
-          page: pageIndex,
+          page: 1,
           pageSize: 10,
           search,
           sortBy: "id",
@@ -60,14 +61,15 @@ const AgentListTab = () => {
         } else {
           setData(prev => [...prev, ...newData]);
         }
-        setHasMore(newData.length > 0);
+        // setHasMore(newData.length > 0);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
       setFetchLoading(false);
     }
-  };
+	};
+	
 
   const fetchAgent = async () => {
     if (userRole !== "admin") return;
@@ -108,6 +110,7 @@ const AgentListTab = () => {
       }
     };
   }, [hasMore]);
+	
   useEffect(() => {
     setPageIndex(1);
     setData([]);
@@ -118,16 +121,14 @@ const AgentListTab = () => {
   }, [search, nameSearch, getClientId()]);
 
   useEffect(() => {
-    if (pageIndex > 1) {
       fetchUsers();
-    }
-  }, [pageIndex]);
+  }, []);
 
   useEffect(() => {
     fetchAgent();
-  }, [userRole]);
+  }, []);
 
-  const handleAssignAgent = async (agentId: number) => {
+	const handleAssignAgent = async (agentId: number) => {
     if (userRole !== "admin") {
       showToast("Only admin can assign agents", "error");
       return;
@@ -143,9 +144,9 @@ const AgentListTab = () => {
       const response = await api.post("/admin/assignAgent", payload);
       handleApiResponse(response);
       if (response?.data?.statusCode === 200 || response?.data?.statusCode === 201) {
-        setPageIndex(1);
-        setData([]);
-        await Promise.all([fetchUsers(), fetchAgent()]);
+		  setData([]);
+		  await Promise.all([fetchUsers(), fetchAgent()]);
+		  setPageIndex(1);
         setUpdateTrigger(prev => prev + 1);
       }
     } catch (error: any) {
@@ -173,9 +174,9 @@ const AgentListTab = () => {
       const response = await api.post("/client/removeAssignAgent", payload);
       handleApiResponse(response);
       if (response?.data?.statusCode === 200 || response?.data?.statusCode === 201) {
-        setPageIndex(1);
-        setData([]);
-        await Promise.all([fetchUsers(), fetchAgent()]);
+		  setData([]);
+		  await Promise.all([fetchUsers(), fetchAgent()]);
+		  setPageIndex(1);
         setUpdateTrigger(prev => prev + 1);
       }
     } catch (error: any) {
@@ -188,25 +189,27 @@ const AgentListTab = () => {
 
   const displayData = useMemo(() => {
     if (userRole === "admin") {
-      const assignedAgentsMap = new Map(
-        data.map(user => [user.id, user])
+      const assignedAgentIds = new Set(data?.map(user => user?.id));
+      // Remove agents from agentList that are already in data
+      const unassignedAgents = agentList?.filter(agent => !assignedAgentIds.has(agent.id));
+      // Mark assigned agents
+      const assignedAgents = data?.map(user => ({
+        ...user,
+        isAssigned: true,
+      }));
+      // Mark unassigned agents
+      const unassignedAgentsWithFlag = unassignedAgents?.map(agent => ({
+        ...agent,
+        isAssigned: false,
+      }));
+      // Combine and sort
+      return [...assignedAgents, ...unassignedAgentsWithFlag].sort((a, b) =>
+        a.isAssigned === b.isAssigned
+          ? a.name.localeCompare(b.name)
+          : a.isAssigned
+          ? -1
+          : 1
       );
-      
-      const mergedData = agentList.map(agent => {
-        const assignedAgent = assignedAgentsMap.get(agent.id);
-        return {
-          ...agent,
-          description: assignedAgent?.description || agent.description || "",
-          isAssigned: !!assignedAgent
-        };
-      });
-
-      return mergedData.sort((a, b) => {
-        if (a.isAssigned !== b.isAssigned) {
-          return a.isAssigned ? -1 : 1;
-        }
-        return a.name.localeCompare(b.name);
-      });
     } else {
       return data;
     }
@@ -215,6 +218,11 @@ const AgentListTab = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
+
+  {console.log("displayData", displayData)}
+
+	console.log("agentList", agentList)
+	console.log("data", data)
 
   return (
     <>
@@ -231,16 +239,10 @@ const AgentListTab = () => {
           </div>
 
           {fetchLoading && pageIndex === 1 ? (
-            <div className="flex justify-center items-center min-h-[200px]">
-               <Spinner
-                          size="xl"
-                          aria-label="Loading data"
-                          light
-                        />
-            </div>
+           <Loader color="primary" />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {displayData.map((item, index) => (
+              {displayData?.map((item, index) => (
                 <CardBox
                   key={item.id}
                   className="relative !shadow-none rounded-lg overflow-hidden bg-light:secondary dark:bg-dark:secondary h-full"

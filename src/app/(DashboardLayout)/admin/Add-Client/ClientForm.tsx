@@ -1,10 +1,9 @@
 "use client";
 
 import 'react-phone-input-2/lib/style.css'
-
 import * as Yup from "yup";
 
-import { Button, Label, Spinner, TextInput, Textarea } from "flowbite-react";
+import { Button, Label,TextInput, Textarea, Spinner } from "flowbite-react";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -16,6 +15,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useRouter } from "next/navigation";
 import { useToast } from "@/app/components/toast/ToastManager";
 import { useClientStore } from "@/stores/clientStore";
+import Loader from "@/app/components/Loader";
 
 
 const noOnlySpaces = (fieldName) =>
@@ -203,13 +203,7 @@ const PhoneInputField: React.FC = () => {
 	return (
 		<div>
 			{pageLoading && (
-				<div className="text-center">
-					<Spinner
-						size="xl"
-						aria-label="Center-aligned spinner example"
-						light
-					/>
-				</div>
+				<Loader color="primary" />
 			)}
 			{!pageLoading && (
 				<>

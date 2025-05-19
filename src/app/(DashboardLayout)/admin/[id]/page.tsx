@@ -1,11 +1,11 @@
-import { Metadata } from "next";
 import ClientForm from "../Add-Client/ClientForm";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Alris Admin",
+  title: "Update Client | Alris Admin",
 };
 
-const page = ({ params }) => {
+const Page = ({ params }) => {
 	 const { id } = params;
   return (
     <>
@@ -14,4 +14,4 @@ const page = ({ params }) => {
   );
 };
 
-export default page;
+export default Page;

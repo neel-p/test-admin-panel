@@ -1,6 +1,7 @@
 "use client";
-
-import { useState, useCallback } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
+import { useState, useCallback, useEffect } from "react";
 import { Card, Button, Spinner, Checkbox, Label } from "flowbite-react";
 // Add other Flowbite components as needed
 import OutlineCard from "@/app/components/shared/OutlineCard";
@@ -16,6 +17,7 @@ const defaultPermissions = {
     permissions: [{
       isAgent: false,
       isChat: false,
+	   isTalentPool: false,
 	//  isAdmin: false,
       jobtask: {
         create: false,
@@ -48,6 +50,7 @@ const defaultPermissions = {
     permissions: [{
       isAgent: false,
       isChat: false,
+	   isTalentPool: false,
       jobtask: {
         create: false,
         read: false,
@@ -97,17 +100,7 @@ const NormalCheckbox = ({ checked, onChange, id, label, disabled = false }) => (
 const CheckboxWithCurve = ({ checked, onChange, id, label, disabled = false }) => (
   <div className="relative mb-2">
     <div
-      className="absolute"
-      style={{
-        left: 10,
-        top: 24,
-        width: 24,
-        height: 20,
-        borderLeft: "2px solid #d1d5db",
-        borderBottom: "2px solid #d1d5db",
-        borderBottomLeftRadius: 16,
-        zIndex: 0,
-      }}
+      className="corner-box"
     />
     <div className="flex items-center gap-2 relative">
       <Checkbox
@@ -128,20 +121,97 @@ const CheckboxWithCurve = ({ checked, onChange, id, label, disabled = false }) =
 const RolePermissionPage = () => {
 	const router = useRouter();
 	const { handleApiResponse } = useHandleApiResponse();
-	  const { showToast } = useToast();
-  const [permissions, setPermissions] = useState(defaultPermissions);
-  const [saving, setSaving] = useState(false);
+	const { showToast } = useToast();
+	const [permissions, setPermissions] = useState(defaultPermissions);
+	const [saving, setSaving] = useState(false);
+	const [isInitialLoad, setIsInitialLoad] = useState(true);
+	const [pageLoading, setPageLoading] = useState(false);
+	
+  	const fetchPermission = async () => {
+		if (isInitialLoad) {
+				setPageLoading(true);
+		}
+		try {
+			const res = await api.post("/permission/getGlobalPemissions");
+			console.log("res.data", res.data)
+			if (res.data.statusCode === 404) {
+				setPermissions(defaultPermissions);
+			} else if (!res.data.error) {
+				// Flatten modules if present in API response
+				const apiPermissions = res?.data?.data;
 
-//   useEffect(() => {
-//     // Fetch permissions from API
-//     fetch(GET_PERMISSIONS_API)
-//       .then((res) => res.json())
-//       .then((data) => {
-//         setPermissions(data);
-//         setLoading(false);
-//       })
-//       .catch(() => setLoading(false));
-//   }, []);
+				function flattenModules(perm) {
+					if (!perm || !perm.permissions || !perm.permissions[0]) return perm;
+					const p0 = perm.permissions[0];
+					if (p0.modules) {
+						const { modules, ...rest } = p0;
+						return {
+							...perm,
+							permissions: [{
+								...rest,
+								...modules
+							}]
+						};
+					}
+					return perm;
+				}
+
+				const flatClient = flattenModules(apiPermissions.client);
+				const flatUser = flattenModules(apiPermissions.user);
+
+				const mergedPermissions = {
+					client: {
+						...defaultPermissions.client,
+						...flatClient,
+						permissions: [{
+							...defaultPermissions.client.permissions[0],
+							...flatClient.permissions[0],
+							jobtask: {
+								...defaultPermissions.client.permissions[0].jobtask,
+								...((flatClient.permissions[0] && flatClient.permissions[0].jobtask) || {})
+							},
+							documents: {
+								...defaultPermissions.client.permissions[0].documents,
+								...((flatClient.permissions[0] && flatClient.permissions[0].documents) || {})
+							},
+							user: {
+								...defaultPermissions.client.permissions[0].user,
+								...((flatClient.permissions[0] && flatClient.permissions[0].user) || {})
+							},
+							collection: {
+								...defaultPermissions.client.permissions[0].collection,
+								...((flatClient.permissions[0] && flatClient.permissions[0].collection) || {})
+							}
+						}]
+					},
+					user: {
+						...defaultPermissions.user,
+						...flatUser,
+						permissions: [{
+							...defaultPermissions.user.permissions[0],
+							...flatUser.permissions[0],
+							jobtask: {
+								...defaultPermissions.user.permissions[0].jobtask,
+								...((flatUser.permissions[0] && flatUser.permissions[0].jobtask) || {})
+							}
+						}]
+					}
+				};
+				setPermissions(mergedPermissions);
+			}
+		} catch (error) {
+			console.error("Failed to fetch edit data:", error);
+			// Set default permissions on error
+			setPermissions(defaultPermissions);
+		} finally {
+			setPageLoading(false);
+			setIsInitialLoad(false);
+		}
+	};
+
+	useEffect(() => {
+		fetchPermission();
+	}, []);
 
   // Use useCallback for handlers
   const handleSingleCheckbox = useCallback((key, type) => {
@@ -212,7 +282,8 @@ const RolePermissionPage = () => {
         response?.data?.statusCode === 201 ||
         response?.data?.statusCode === 200
       ) {
-        router.push("/admin/role-permission");
+		  fetchPermission();
+        // router.push("/admin/role-permission");
       }
     } catch (error) {
      	const message =
@@ -236,7 +307,7 @@ const RolePermissionPage = () => {
 
   return (
 	<OutlineCard className="mt-[30px] shadow-none">
-    <div className="p-4 sm:p-6">
+    <div className="">
       <h2 className="text-lg font-semibold mb-6">Roles & Permissions [Global]</h2>
       {/* For Clients */}
       <Card className="mb-8 border border-bordergray rounded-xl shadow-none">
@@ -255,6 +326,12 @@ const RolePermissionPage = () => {
               onChange={() => handleSingleCheckbox("isChat", "client")}
               id="client-chat-service"
               label="Chat Service"
+            />
+			 <NormalCheckbox
+              checked={permissions.client.permissions[0].isTalentPool}
+              onChange={() => handleSingleCheckbox("isTalentPool", "client")}
+              id="client-chat-service"
+              label="Talent Pool"
             />
 			 {/* <NormalCheckbox
               checked={permissions.client.permissions[0].isAdmin}
@@ -310,7 +387,12 @@ const RolePermissionPage = () => {
               id="user-chat-service"
               label="Chat Service"
             />
-
+					 <NormalCheckbox
+              checked={permissions.user.permissions[0].isTalentPool}
+              onChange={() => handleSingleCheckbox("isTalentPool", "user")}
+              id="client-chat-service"
+              label="Talent Pool"
+            />
 			 {/* <NormalCheckbox
               checked={permissions.client.permissions[0].isAdmin}
               onChange={() => handleSingleCheckbox("isAdmin", "user")}

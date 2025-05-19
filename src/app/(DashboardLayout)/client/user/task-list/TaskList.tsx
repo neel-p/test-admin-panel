@@ -19,6 +19,8 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/app/components/toast/ToastManager";
 import { uniqueId } from "lodash";
+import Loader from "@/app/components/Loader";
+
 interface TaskData {
 	id: number;
 	userId: number;
@@ -36,6 +38,7 @@ interface TaskData {
 	status: string;
 	isDeleted: boolean;
 	actions?: any;
+	agentList?: any;
 }
 
 interface DeleteModalState {
@@ -276,6 +279,9 @@ const TaskList = () => {
 		data: null,
 	});
 
+	console.log("data", data)
+	const [isInitialLoad, setIsInitialLoad] = useState(true);
+
 	const onCloseDeleteModal =()=>{
 		setIsDeleteModalOpen({
 			isOpen: false,
@@ -286,7 +292,7 @@ const TaskList = () => {
 		<div className="flex items-center space-x-2 cursor-pointer relative" onClick={onClick}>
 			<div className="relative">
 				<Tooltip content={tooltip}>
-					<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white">
+					<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white svg18">
 						<Icon icon={icon} height={18} />
 					</span>
 				</Tooltip>
@@ -456,6 +462,7 @@ const TaskList = () => {
 					header: () => <Label>Action</Label>,
 					cell: ({ row }) => {
 						const rowData: any = row.original;
+						console.log("row.original", row?.original?.agentList)
 						const handleDeleteClick = () => {
 							//handleDeleteClientUser(rowData?.id);
 							setIsDeleteModalOpen({
@@ -497,9 +504,9 @@ const TaskList = () => {
 								/>
 															)}
 							{canCreate('jobtask') && (
-                            	rowData.status?.toLocaleLowerCase() === "prepared" && (
+                            	 rowData?.agentList?.some((agent: any) => agent?.name?.toLowerCase() === "outboundagent")  && rowData.status?.toLocaleLowerCase() === "prepared" && (
                                 <ActionButton
-                                    onClick={handleOutboundClick}
+                                   	onClick={handleOutboundClick}
                                     tooltip="OutBound Search"
                                     icon="solar:magnifer-zoom-in-broken"
                                 />
@@ -540,6 +547,7 @@ const TaskList = () => {
 			setIsLoading(false);
 		} finally {
 			setIsLoading(false);
+			setIsInitialLoad(false);
 		}
 	};
 
@@ -549,7 +557,10 @@ const TaskList = () => {
 
 	return (
 		<>
-		 {hasNoPermissions('jobtask') ? (
+		 {isInitialLoad ? (
+			<Loader color="primary" />
+			) :
+			hasNoPermissions('jobtask') ? (
 			  <div className="flex items-center justify-center h-[50vh]">
 				  <div className="text-center">
 					  <h1 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Access</h1>

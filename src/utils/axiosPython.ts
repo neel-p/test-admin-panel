@@ -120,6 +120,11 @@ api1.interceptors.response.use(
     if (error.response) {
       console.error("API Error Response:", error.response.data);
     }
+	if (error.response?.status === 401) {
+      // Clear token and redirect to login
+      localStorage.removeItem('user-token');
+      window.location.href = '/auth/login';
+    }
     return Promise.reject(error);
   }
 );

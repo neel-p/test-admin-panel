@@ -10,6 +10,7 @@ import { Field, Form, Formik, useFormikContext } from "formik";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
+import Loader from "@/app/components/Loader";
 
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
@@ -139,13 +140,7 @@ const UserForm: React.FC<UserFormProps> = () => {
   return (
     <div>
       {pageLoading && (
-        <div className="text-center">
-          <Spinner
-           size="xl"
-            aria-label="Center-aligned spinner example"
-            light
-          />
-        </div>
+      <Loader color="primary" />
       )}
 	   {!pageLoading && (
 		<>

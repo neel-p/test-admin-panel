@@ -6,6 +6,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import api from "@/utils/axios";
 import { useSearchParams } from "next/navigation";
 import { getFormattedPhoneNumber } from "@/utils/commonFUnction";
+import Loader from "@/app/components/Loader";
 
 interface ClientDetails {
   website: string;
@@ -76,13 +77,7 @@ const ProfileTab = () => {
   return (
     <>
       {pageLoading && (
-        <div className="text-center">
-          <Spinner
-            size="xl"
-            aria-label="Center-aligned spinner example"
-            light
-          />
-        </div>
+        <Loader color="primary" />
       )}
       {!pageLoading && (
         <div className="flex flex-col md:flex-row md:divide-x divide-gray-300 bg-white dark:bg-gray-800 rounded-2xl shadow p-6">

@@ -16,6 +16,7 @@ import { useClientStore } from "@/stores/clientStore";
 import { useHandleApiResponse } from "@/utils/useHandleApiResponse";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/app/components/toast/ToastManager";
+import Loader from "@/app/components/Loader";
 
 interface Client {
   createdAt?: string;
@@ -29,7 +30,8 @@ interface Client {
   mobile: string | number;
   designation: string;
   isDeleted?: boolean | null;
-  actions?: any;
+	actions?: any;
+	permissions?: any;
 }
 const columnHelper = createColumnHelper<Client>();
 interface DeleteModalState {
@@ -50,10 +52,13 @@ const UserList = () => {
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("id");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
 	const [selectedClientPermission, setSelectedClientPermission] = useState<number[]>([]);
 	const [showPermissionModal, setShowPermissionModal] = useState(false);
+	const [selectedClientPermissions, setSelectedClientPermissions] = useState(null);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<DeleteModalState>({
 		isOpen: false,
 		data: null,
@@ -94,7 +99,7 @@ const UserList = () => {
 		<div className="flex items-center space-x-2 cursor-pointer relative" onClick={onClick}>
 				 <div className="relative">
 			<Tooltip content={tooltip}>
-			<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white">
+			<span className="h-10 w-10 hover:text-primary hover:bg-lightprimary dark:hover:bg-darkminisidebar dark:hover:text-primary focus:ring-0 rounded-full flex justify-center items-center cursor-pointer text-darklink dark:text-white svg18">
 				<Icon icon={icon} height={18} />
 			</span>
 			</Tooltip>
@@ -109,17 +114,24 @@ const UserList = () => {
 				id: "select",
 				header: () => null,
 				cell: ({ row }) => (
-					<Checkbox
+				<Checkbox
 						checked={selectedClientIds.includes(row.original.id)}
 						onChange={() => {
 							const id = row.original.id;
-							setSelectedClientIds((prev) =>
-								prev.includes(id)
-									? prev.filter((cid) => cid !== id)
-									: [...prev, id]
-							);
+							
+							if (selectedClientIds.includes(id)) {
+								setSelectedClientIds(prev => prev.filter(cid => cid !== id));
+								setSelectedClientPermissions(null);
+							} else {
+								setSelectedClientIds(prev => [...prev, id]);
+								// If this is the only selected client, set its permissions
+								if (selectedClientIds.length === 0) {
+									setSelectedClientPermissions(row?.original?.permissions);
+								} else {
+									setSelectedClientPermissions(null);
+								}
+							}
 						}}
-						// color="purple"
 					/>
 				),
 				enableSorting: false,
@@ -269,6 +281,10 @@ const UserList = () => {
 
  
   const fetchUsers = async () => {
+	if (isInitialLoad) {
+			setPageLoading(true);
+	}
+	try {
     const payload = {
       body: {
         page: pageIndex + 1,
@@ -288,7 +304,14 @@ const UserList = () => {
 				setData(res?.data?.data);
 				setTotal(res?.data?.totalElements);
 			}
+				} catch (error) {
+			console.error("Failed to fetch edit data:", error);
+		} finally {
+			setPageLoading(false);
+			setIsInitialLoad(false);
+		}
   };
+
   useEffect(() => {
     fetchUsers();
   }, [pageIndex, pageSize, search, sortBy, sortOrder, getClientId()]);
@@ -297,8 +320,10 @@ const UserList = () => {
   const encoded = Buffer.from(JSON.stringify(datas)).toString("base64");
 
   return (
-    <>
-	 {hasNoPermissions('user') ? (
+    <>{isInitialLoad ? (
+			// You can use any loader/spinner component here
+			<Loader color="primary" />
+			) : hasNoPermissions('user') ? (
 			  <div className="flex items-center justify-center h-[50vh]">
 				  <div className="text-center">
 					  <h1 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Access</h1>
@@ -328,12 +353,13 @@ const UserList = () => {
 				buttonName={canCreate('user')?  "Add User": 'no button'}
 				buttonLink={`/client/add-user?data=${encoded}`}
 				isForm={false}form={null}
+				isLoading={pageLoading}
 			/>
 		)}
 		{selectedClientIds.length > 0 && (
 							<div
 								className="fixed left-1/2 bottom-8 transform -translate-x-1/2 z-50 flex items-center bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-2"
-								style={{ minWidth: 320 }}
+								
 							>
 								<span className="mr-4 text-sm">{selectedClientIds.length} users selected</span>
 								<button
@@ -359,11 +385,15 @@ const UserList = () => {
 						<div className="space-y-6">
 							<ModalRolePermissionUser
 							clientIds={selectedClientIds}
-							isBulk={selectedClientIds.length > 1}
+								userIds={selectedClientIds}
+							 isBulk={selectedClientIds.length > 1}
+          					initialPermissions={selectedClientPermissions}
 							onClose={() => {
 								setShowPermissionModal(false);
 								setSelectedClientIds([]);
+								setSelectedClientPermissions(null);
 							}}
+							fetchUsers={fetchUsers}
 							/>
 						</div>
 						</Modal.Body>

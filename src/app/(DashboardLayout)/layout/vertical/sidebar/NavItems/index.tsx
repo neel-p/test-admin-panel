@@ -27,7 +27,7 @@ const NavItems: React.FC<NavItemsProps> = ({ item }) => {
           : "text-link bg-transparent group/link "
           } cursor-pointer`}
       >
-        <span className="flex gap-3 align-center items-center truncate text-[15px]">
+        <span className="flex gap-3 align-center items-center truncate text-[15px] svg18">
           {item.icon ? (
             <Icon icon={item.icon} className={`${item.color}`} height={18} />
           ) : (

@@ -1,30 +1,21 @@
 "use client";
-import React, { Suspense, useContext, memo } from "react";
-import dynamic from "next/dynamic";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
+import React, { Suspense, useContext , memo} from "react";
+import Sidebar from "./layout/vertical/sidebar/Sidebar";
+import Header from "./layout/vertical/header/Header";
+import  TokenSynchronizer from '@/app/components/TokenSynchronizer'
 import { CustomizerContext } from "@/app/context/customizerContext";
-
+import dynamic from "next/dynamic";
 // Dynamically import components to reduce initial bundle size
-const Sidebar = dynamic(() => import("./layout/vertical/sidebar/Sidebar"), {
-  loading: () => <Loader />,
-  ssr: false
-});
-
-const Header = dynamic(() => import("./layout/vertical/header/Header"), {
-  loading: () => <Loader />,
-  ssr: false
-});
+// const Sidebar = dynamic(() => import("./layout/vertical/sidebar/Sidebar"), {
+//   ssr: false
+// });
+// const Header = dynamic(() => import("./layout/vertical/header/Header"), {
+//   ssr: false
+// });
 
 
-const TokenSynchronizer = dynamic(() => import("@/app/components/TokenSynchronizer"), {
-  ssr: false
-});
-
-const Loader = memo(() => (
-  <div className="flex items-center justify-center min-h-[400px]">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-  </div>
-));
-Loader.displayName = 'Loader';
 
 const ContentContainer = memo(({ 
   isLayout, 
@@ -42,9 +33,7 @@ const ContentContainer = memo(({
       } ${activeLayout == "horizontal" ? 'xl:mt-3' : ''}
     `}
   >
-    <Suspense fallback={<Loader />}>
       {children}
-    </Suspense>
   </div>
 ));
 ContentContainer.displayName = 'ContentContainer';
@@ -57,6 +46,7 @@ export default function Layout({
   const { activeLayout, isLayout } = useContext(CustomizerContext);
   
   return (
+	<Suspense>
     <div className="flex w-full min-h-screen">
       <TokenSynchronizer />
       <div className="page-wrapper flex w-full">
@@ -71,5 +61,8 @@ export default function Layout({
         </div>
       </div>
     </div>
+	</Suspense>
   );
 }
+
+Layout.displayName = 'Layout';

@@ -1,12 +1,15 @@
 "use client";
-
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Card, Label, Spinner, Tooltip, Button } from "flowbite-react";
+import { Card, Label, Tooltip, Button } from "flowbite-react";
 import { Icon } from "@iconify/react";
 import api from "@/utils/axios";
 import Link from "next/link";
 import { useToast } from "@/app/components/toast/ToastManager";
+import Loader from "@/app/components/Loader";
+
 interface Candidate {
   [key: string]: any; // Allow any data structure
 }
@@ -86,7 +89,10 @@ const { showToast } = useToast();
       <div className={`flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 ${className}`} key={generateUniqueId()}>
         <Label className="w-full sm:w-32 text-gray-700 break-words shrink-0">{label}</Label>
         <span className="hidden sm:inline shrink-0">:</span>
-        <span className="break-words overflow-hidden text-ellipsis">{value}</span>
+        {/* <span className="break-words overflow-hidden text-ellipsis">{value}</span> */}
+		   <span className="break-words overflow-hidden text-ellipsis">
+       		 {Array.isArray(value) ? value.join(', ') : value}
+      		</span>
       </div>
     );
   };
@@ -230,6 +236,8 @@ const { showToast } = useToast();
 
     return (
       <>
+	   {/* Meta Tags */}
+	   
         {additionalSections.map(([key, value]) => (
           <Card key={key} className="md:col-span-2">
             <h2 className="text-xl font-semibold mb-4">
@@ -265,9 +273,7 @@ const { showToast } = useToast();
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="xl" aria-label="Loading candidate details" />
-      </div>
+      <Loader color="primary" />
     );
   }
 
@@ -280,6 +286,7 @@ const { showToast } = useToast();
   }
 
   return (
+	<>
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       <div className="mb-6">
         <Link 
@@ -350,6 +357,7 @@ const { showToast } = useToast();
         {renderAdditionalSections()}
       </div>
     </div>
+	</>
   );
 };
 

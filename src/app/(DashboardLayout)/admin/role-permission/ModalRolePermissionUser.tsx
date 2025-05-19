@@ -1,5 +1,6 @@
 "use client";
-
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
 import { useState, useCallback } from "react";
 import { Card, Button, Spinner, Checkbox, Label } from "flowbite-react";
 // Add other Flowbite components as needed
@@ -9,13 +10,14 @@ import { useRouter } from "next/navigation";
 import api from "@/utils/axios";
 import { useHandleApiResponse } from "@/utils/useHandleApiResponse";
 import { useToast } from "@/app/components/toast/ToastManager";
-
+import { useClientStore } from "@/stores/clientStore";
 const defaultPermissions = {
   client: {
     clientId: [],
     permissions: [{
       isAgent: false,
       isChat: false,
+	   isTalentPool: false,
       collection: {
         create: false,
         read: false,
@@ -114,27 +116,73 @@ interface RolePermissionPageProps {
   clientIds?: number[];
   isBulk?: boolean;
   onClose?: () => void;
+   initialPermissions?: any;
+   fetchUsers?: () => void;
+   userIds?: any
 }
 
-export default function ModalRolePermissionUser({ clientIds = [], isBulk = false, onClose }: RolePermissionPageProps) {
+export default function ModalRolePermissionUser({ 
+	clientIds = [], 	 	
+	isBulk = false, 
+	onClose, 
+	initialPermissions = null,
+	fetchUsers,
+	userIds
+
+ }: RolePermissionPageProps) {
 	const router = useRouter();
+	const { getClientId } = useClientStore();
 	const { handleApiResponse } = useHandleApiResponse();
 	  const { showToast } = useToast();
-  const [permissions, setPermissions] = useState(defaultPermissions);
+	  console.log("initialPermissions", initialPermissions)
+ 		const [permissions, setPermissions] = useState(() => {
+		if (initialPermissions && !isBulk) {
+			// Transform the permissions structure to match our format
+			return {
+				client: {
+					clientId:[getClientId()],
+					permissions: [{
+						isAgent: initialPermissions[0]?.isAgent || false,
+						isChat: initialPermissions[0]?.isChat || false,
+						isTalentPool:initialPermissions[0]?.isTalentPool || false,
+						collection: initialPermissions[0]?.modules?.collection || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+						documents: initialPermissions[0]?.modules?.documents || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+						user: initialPermissions[0]?.modules?.user || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+						jobtask: initialPermissions[0]?.modules?.jobtask || {
+							create: false,
+							read: false,
+							update: false,
+							delete: false,
+						},
+					}]
+				}
+			};
+		}
+		return {
+			client: {
+				clientId: [getClientId()],
+				permissions: defaultPermissions.client.permissions,
+			},
+		};
+	});
   const [saving, setSaving] = useState(false);
 
-//   useEffect(() => {
-//     // Fetch permissions from API
-//     fetch(GET_PERMISSIONS_API)
-//       .then((res) => res.json())
-//       .then((data) => {
-//         setPermissions(data);
-//         setLoading(false);
-//       })
-//       .catch(() => setLoading(false));
-//   }, []);
 
-  // Use useCallback for handlers
   const handleSingleCheckbox = useCallback((key, type) => {
     setPermissions((prev) => ({
       ...prev,
@@ -184,31 +232,28 @@ export default function ModalRolePermissionUser({ clientIds = [], isBulk = false
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = {
-        body: {
-          isAll: !clientIds.length,
-          user: {
-            ...permissions.client,
-            userId: clientIds,
-          },
-        },
-      };
-
-      const response = await api.post("/permission/setPemissions", payload);
-
-      // Handle success
-      handleApiResponse(response);
-     
-      if (onClose) onClose();
-    } catch (error) {
-     	const message =
-									error?.response?.data?.message || "Network error";
-								showToast(message, "error");
-	}
-	finally {
-								setSaving(false);
-							}
-      
+		const payload = {
+			body: {
+			isAll: !userIds.length,
+			user: {
+				...permissions.client,
+				userId: userIds,
+			},
+			},
+		};
+		const response = await api.post("/permission/setPemissions", payload);
+		// Handle success
+			handleApiResponse(response);
+			if (fetchUsers) fetchUsers();
+			if (onClose) onClose();
+    	} 
+		catch (error) {
+     		const message = error?.response?.data?.message || "Network error";
+			showToast(message, "error");
+		}
+		finally {
+				setSaving(false);
+		}
   };
 
   // Helper for group label checkbox state
@@ -221,7 +266,7 @@ export default function ModalRolePermissionUser({ clientIds = [], isBulk = false
   };
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="">
       {/* For Clients */}
       <Card className="mb-8 border border-bordergray rounded-xl shadow-none">
         <div className="flex flex-col gap-6">
@@ -238,6 +283,12 @@ export default function ModalRolePermissionUser({ clientIds = [], isBulk = false
               onChange={() => handleSingleCheckbox("isChat", "client")}
               id="client-chat-service"
               label="Chat Service"
+            />
+			 <NormalCheckbox
+              checked={permissions.client.permissions[0].isTalentPool}
+              onChange={() => handleSingleCheckbox("isTalentPool", "client")}
+              id="client-chat-service"
+              label="Talent Pool"
             />
           </div>
 

@@ -1,4 +1,6 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/no-unescaped-entities */
 import { CustomizerContext } from "@/app/context/customizerContext";
 import { Icon } from "@iconify/react";
 import "flowbite";
@@ -171,7 +173,7 @@ const Header = ({ layoutType }: HeaderPropsType) => {
                 <div className="w-[300px]"> {/* Fixed width of 300px */}
                   <Select
                     id="client-select"
-                    className="w-full"
+                    className="w-full client-select"
                     onChange={(option: any) => {setSelectClientValues(option);handleSelectClient(option.value)}}
                     options={clientList?.map(ele => ({
                       value: ele.id,

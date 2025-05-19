@@ -13,6 +13,7 @@ import * as Yup from "yup";
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import { getDecryptedData } from "@/utils/secureStorage";
+import Loader from "@/app/components/Loader";
 
 const noOnlySpaces = (fieldName) =>
 	Yup.string()
@@ -126,13 +127,7 @@ const PhoneInputField: React.FC = () => {
   return (
     <div>
       {pageLoading && (
-        <div className="text-center">
-          <Spinner
-           size="xl"
-            aria-label="Center-aligned spinner example"
-            light
-          />
-        </div>
+       <Loader color="primary" />
       )}
 	   {!pageLoading && (
 		<>

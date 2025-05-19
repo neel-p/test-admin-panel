@@ -29,6 +29,7 @@ const DocumentForm = () => {
      // description: string;
     }[]
   >([]);
+  const [fileError, setFileError] = useState<string>("");
 
   const decodedData = useMemo(() => {
     if (searchParamsData) {
@@ -54,7 +55,7 @@ const DocumentForm = () => {
           .test(
             "fileSize",
             "File size must be less than 10MB",
-            (file: File) => file?.size <= 10 * 1024 * 1024
+            (file: File) => file?.size <= 10  * 1024 * 1024
           )
       )
       .max(10, "You can only upload up to 10 files")
@@ -109,34 +110,53 @@ const DocumentForm = () => {
     });
   };
 
-  const handleFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: (field: string, value: any) => void
-  ) => {
-    const files = Array.from(e.target.files || []);
+ const handleFileChange = async (
+  e: React.ChangeEvent<HTMLInputElement>,
+  setFieldValue: (field: string, value: any) => void,
+  setFieldError: (field: string, message: string) => void
+) => {
+  const files = Array.from(e.target.files || []);
+  const maxSize = 10 * 1024 * 1024; // 10MB
 
-    const filteredFiles = files.filter(
-      (file) => file.type === "application/pdf" && file.size <= 10 * 1024 * 1024
-    );
+  const oversizedFiles = files.filter((file) => file.size > maxSize);
+  const invalidTypeFiles = files.filter((file) => file.type !== "application/pdf");
 
-    const limitedFiles = [
-      ...documents,
-      ...filteredFiles.map((f) => ({
-        file: f,
-        uploaded: false,
-        filePath: "",
-        // description: "",
-      })),
-    ].slice(0, 10);
+  if (oversizedFiles.length > 0) {
+    setFileError("One or more files exceed the 10MB size limit.");
+    setFieldError("files", "One or more files exceed the 10MB size limit.");
+    return;
+  }
 
-    setDocuments(limitedFiles);
-    setFieldValue(
-      "files",
-      limitedFiles.map((doc) => doc.file)
-    );
+  if (invalidTypeFiles.length > 0) {
+    setFileError("Only PDF files are allowed.");
+    setFieldError("files", "Only PDF files are allowed.");
+    return;
+  }
 
-    const uploadedData = await Promise.all(
-      filteredFiles.map(async (file) => {
+  setFileError(""); // Clear previous errors
+
+  const filteredFiles = files.filter(
+    (file) => file.type === "application/pdf" && file.size <= maxSize
+  );
+
+  const limitedFiles = [
+    ...documents,
+    ...filteredFiles.map((f) => ({
+      file: f,
+      uploaded: false,
+      filePath: "",
+    })),
+  ].slice(0, 10);
+
+  setDocuments(limitedFiles);
+  setFieldValue(
+    "files",
+    limitedFiles.map((doc) => doc.file)
+  );
+
+  const uploadedData = await Promise.all(
+    filteredFiles.map(async (file) => {
+      try {
         const base64 = await toBase64(file);
         const payload = {
           body: {
@@ -144,31 +164,53 @@ const DocumentForm = () => {
             path: `client_${decodedData?.clientId}/collection_${decodedData?.collectionId}/`,
             extension: "pdf",
             base64File: base64.split(",")[1],
+            clientCollectionId: parseInt(decodedData?.collectionId),
           },
         };
 
-        const response: any = await api.post("/file/upload", payload);
+        const response = await api.post("/file/upload", payload);
+        handleApiResponse(response);
+
+        const statusCode = response?.data?.statusCode;
+
+        if (statusCode === 200 || statusCode === 201) {
+          return {
+            file,
+            uploaded: true,
+            filePath: response?.data?.data,
+          };
+        } else {
+          console.error("Upload failed with status:", statusCode);
+          setFileError(`Upload failed for ${file.name}`);
+          return {
+            file,
+            uploaded: false,
+            filePath: "",
+          };
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        setFileError(`Upload failed for ${file.name}`);
         return {
           file,
-          uploaded: true,
-          filePath: response?.data?.data,
-         // description: "",
+          uploaded: false,
+          filePath: "",
         };
-      })
-    );
+      }
+    })
+  );
 
-    // Merge with existing documents
-    setDocuments((prev) => {
-      const updated = [...prev];
-      uploadedData.forEach((uploadedFile) => {
-        const index = updated.findIndex(
-          (d) => d.file.name === uploadedFile.file.name
-        );
-        if (index !== -1) updated[index] = uploadedFile;
-      });
-      return updated;
+  setDocuments((prev) => {
+    const updated = [...prev];
+    uploadedData.forEach((uploadedFile) => {
+      const index = updated.findIndex((d) => d.file.name === uploadedFile.file.name);
+      if (index !== -1) updated[index] = uploadedFile;
     });
-  };
+    return updated;
+  });
+};
+
+	
   const isAnyInputDisabled = documents.some((doc) => !doc.uploaded);
   return (
     <>
@@ -181,13 +223,13 @@ const DocumentForm = () => {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ errors, touched, setFieldValue, isSubmitting }) => (
+          {({ errors, touched, setFieldValue, isSubmitting, setFieldError }) => (
             <Form>
               <div className="flex w-full items-center justify-center">
                 <Label
                   htmlFor="dropzone-file"
                   className={`flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-[1px] border-dashed border-primary bg-lightprimary ${
-                    errors.files && touched.files ? "border-red-500" : ""
+                    (errors.files && touched.files) || fileError ? "border-red-500" : ""
                   }`}
                 >
                   <div className="flex flex-col items-center justify-center pb-6 pt-5">
@@ -214,16 +256,16 @@ const DocumentForm = () => {
                     name="file"
                     accept="application/pdf"
                     className="hidden"
-                    onChange={(e) => handleFileChange(e, setFieldValue)}
+                    onChange={(e) => handleFileChange(e, setFieldValue, setFieldError)}
                   />
                 </Label>
               </div>
 
-              {errors.files && touched.files && (
-                <div className="mt-2 text-sm text-red-500">
-                  {errors.files as string}
+              {(errors.files && touched.files) || fileError ? (
+                <div className="text-sm text-red-500 mt-1">
+                  {fileError || (typeof errors.files === 'string' ? errors.files : 'Invalid file')}
                 </div>
-              )}
+              ) : null}
 
               {documents.length > 0 && (
                 <div className="mt-4">

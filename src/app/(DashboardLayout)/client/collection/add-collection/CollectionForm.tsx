@@ -13,6 +13,7 @@ import TitleCard from "@/app/components/shared/TitleBorderCard";
 import api from "@/utils/axios";
 import { useHandleApiResponse } from "@/utils/useHandleApiResponse";
 import { useToast } from "@/app/components/toast/ToastManager";
+import Loader from "@/app/components/Loader";
 
 const noOnlySpaces = (fieldName) =>
 	Yup.string()
@@ -98,13 +99,7 @@ const CollectionForm: React.FC<UserFormProps> = () => {
   return (
     <div>
       {pageLoading && (
-        <div className="text-center">
-          <Spinner
-            size="xl"
-            aria-label="Center-aligned spinner example"
-            light
-          />
-        </div>
+        <Loader color="primary" />
       )}
       {!pageLoading && (
         <>

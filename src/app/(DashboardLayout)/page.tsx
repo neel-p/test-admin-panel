@@ -1,6 +1,6 @@
 import ClientList from "./admin/ClientList";
 
-const page = () => {
+const Page = () => {
   return (
     <>
       <ClientList />
@@ -8,6 +8,6 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
 
 

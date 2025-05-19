@@ -1,6 +1,10 @@
 import UserProfileForm from "./UserProfileForm";
+import { Metadata } from "next";
 
-const page = () => {
+export const metadata: Metadata = {
+  title: "Profile | Alris Admin",
+};
+const Page = () => {
   return (
     <>
       <UserProfileForm />
@@ -8,4 +12,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
