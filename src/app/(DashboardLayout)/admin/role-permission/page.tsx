@@ -330,7 +330,7 @@ const RolePermissionPage = () => {
 			 <NormalCheckbox
               checked={permissions.client.permissions[0].isTalentPool}
               onChange={() => handleSingleCheckbox("isTalentPool", "client")}
-              id="client-chat-service"
+               id="client-isTalentPool-service"
               label="Talent Pool"
             />
 			 {/* <NormalCheckbox
@@ -390,7 +390,7 @@ const RolePermissionPage = () => {
 					 <NormalCheckbox
               checked={permissions.user.permissions[0].isTalentPool}
               onChange={() => handleSingleCheckbox("isTalentPool", "user")}
-              id="client-chat-service"
+                id="user-isTalentPool-service"
               label="Talent Pool"
             />
 			 {/* <NormalCheckbox

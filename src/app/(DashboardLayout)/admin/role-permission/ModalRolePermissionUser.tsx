@@ -287,7 +287,7 @@ export default function ModalRolePermissionUser({
 			 <NormalCheckbox
               checked={permissions.client.permissions[0].isTalentPool}
               onChange={() => handleSingleCheckbox("isTalentPool", "client")}
-              id="client-chat-service"
+               id="client-isTalentPool-service"
               label="Talent Pool"
             />
           </div>
