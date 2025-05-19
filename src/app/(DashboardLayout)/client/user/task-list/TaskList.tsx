@@ -279,7 +279,6 @@ const TaskList = () => {
 		data: null,
 	});
 
-	console.log("data", data)
 	const [isInitialLoad, setIsInitialLoad] = useState(true);
 
 	const onCloseDeleteModal =()=>{
@@ -462,7 +461,6 @@ const TaskList = () => {
 					header: () => <Label>Action</Label>,
 					cell: ({ row }) => {
 						const rowData: any = row.original;
-						console.log("row.original", row?.original?.agentList)
 						const handleDeleteClick = () => {
 							//handleDeleteClientUser(rowData?.id);
 							setIsDeleteModalOpen({

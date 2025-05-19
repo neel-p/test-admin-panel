@@ -134,7 +134,6 @@ export default function ModalRolePermissionUser({
 	const { getClientId } = useClientStore();
 	const { handleApiResponse } = useHandleApiResponse();
 	  const { showToast } = useToast();
-	  console.log("initialPermissions", initialPermissions)
  		const [permissions, setPermissions] = useState(() => {
 		if (initialPermissions && !isBulk) {
 			// Transform the permissions structure to match our format

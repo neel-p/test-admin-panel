@@ -103,7 +103,6 @@ api1.interceptors.response.use(
       if (!decryptedData) {
         throw new Error("Failed to decrypt response");
       }
-	  console.log("JSON.parse(decryptedData)", JSON.parse(decryptedData))
       return {
         ...response,
         data: JSON.parse(decryptedData),

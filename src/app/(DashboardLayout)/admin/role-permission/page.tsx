@@ -133,7 +133,6 @@ const RolePermissionPage = () => {
 		}
 		try {
 			const res = await api.post("/permission/getGlobalPemissions");
-			console.log("res.data", res.data)
 			if (res.data.statusCode === 404) {
 				setPermissions(defaultPermissions);
 			} else if (!res.data.error) {

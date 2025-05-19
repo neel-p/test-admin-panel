@@ -219,10 +219,6 @@ const AgentListTab = () => {
     setSearch(e.target.value);
   };
 
-  {console.log("displayData", displayData)}
-
-	console.log("agentList", agentList)
-	console.log("data", data)
 
   return (
     <>

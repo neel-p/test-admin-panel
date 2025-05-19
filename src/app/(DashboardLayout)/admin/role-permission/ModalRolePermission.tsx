@@ -231,7 +231,6 @@ export default function RolePermissionPage({
           },
         },
       };
- console.log("payload", payload)
       const response = await api.post("/permission/setPemissions", payload);
 
       // Handle success

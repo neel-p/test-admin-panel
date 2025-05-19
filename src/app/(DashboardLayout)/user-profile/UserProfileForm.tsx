@@ -166,7 +166,6 @@ const PhoneInputField: React.FC = () => {
               router.push(`/client/user`);
             }
           } catch (error: any) {
-            console.log("error", error);
             const message = error?.response?.data?.message || "Network error";
             showToast(message, "error");
           } finally {
